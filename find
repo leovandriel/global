@@ -1,14 +1,28 @@
-#!/usr/bin/env python3 #-m cProfile -s tottime
+#!/usr/bin/env python3
 
 from datetime import datetime
 import json
 import sys
 import time
 import urllib.request
+from twilio.rest import Client
 
-appointment_stamp = '2021-10-30T11:15'
+account_sid = None
+service_sid = None
+auth_token = None
+recipient_phone = None
+appointment_stamp = None
 progress_indicator = '/-\\|'
 poll_interval = 61
+text_uniquer = set()
+
+with open('.config', 'r') as file:
+    config = json.loads(file.read())
+    auth_token = config['auth_token']
+    account_sid = config['account_sid']
+    service_sid = config['service_sid']
+    recipient_phone = config['recipient_phone']
+    appointment_stamp = config['appointment_stamp']
 
 def parse_date(stamp):
     return datetime.strptime(stamp, '%Y-%m-%dT%H:%M')
@@ -16,6 +30,15 @@ def parse_date(stamp):
 def fetch_json(url):
     with urllib.request.urlopen(url) as response:
         return json.loads(response.read())
+
+def send_text(text):
+    print(text)
+    if text in text_uniquer:
+        return
+    text_uniquer.add(text)
+    client = Client(account_sid, auth_token)
+    message = client.messages.create(messaging_service_sid=service_sid, body=text, to=recipient_phone)
+    return message.sid
 
 def fetch_soonest():
     url = 'https://ttp.cbp.dhs.gov/schedulerapi/slots?orderBy=soonest&limit=1&locationId=5446&minimum=1'
@@ -39,7 +62,8 @@ def poll_soonest():
     appointment = parse_date(appointment_stamp)
     diff = appointment - soonest
     if diff.days > 0:
-        print(f'found earlier appointment! {diff.days} days earlier, on {soonest}')
+        message = f'found earlier appointment! {diff.days} days earlier, on {soonest}'
+        send_text(message)
     soonest2 = fetch_soonest2()
     if soonest2 is not None:
         print(f'confirming on {soonest2}')
@@ -52,6 +76,7 @@ def write_stat(file, date):
     file.flush()
 
 def loop():
+    print(f'looking for appointments before {appointment_stamp}')
     i = 0
     with open('soonest.csv', 'a') as file:
         while True:
@@ -59,10 +84,10 @@ def loop():
             date = poll_soonest()
             write_stat(file, date)
             time.sleep(poll_interval)
+            if i % 1000 == 0:
+                send_text(f'running for {i} polls')
             i += 1
 
 if __name__ == '__main__':
     loop()
 
-
-# h%3A00%3A00

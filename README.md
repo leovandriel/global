@@ -17,13 +17,7 @@ Set up a Twilio messaging account. Add IDs and auth token to `.config` file:
 
 Run with:
 
-    source venv/bin/activate
-    pip install twilio
     ./find
-
-Run on a server in the background using:
-
-    nohup ./find > find.out 2> find.err < /dev/null &
 
 # License
 

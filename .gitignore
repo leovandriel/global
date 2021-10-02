@@ -1,5 +1,6 @@
 soonest.csv
 .config
+config.env
 venv
 find.out
 find.err

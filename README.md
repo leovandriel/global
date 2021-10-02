@@ -5,19 +5,21 @@ Global
 
 # Usage
 
-Set up a Twilio messaging account. Add IDs and auth token to `.config` file:
+Set up a Twilio messaging account. Add IDs and auth token to `config.env` file:
 
-    {
-        "account_sid": "..",
-        "service_sid": "..",
-        "auth_token": "..",
-        "recipient_phone": "+1..",
-        "appointment_stamp": "2021-00-00T00:00"
-    }
+    account_sid='..'
+    service_sid='..'
+    auth_token='..'
+    cloud_path='..'
+    hash_salt='..'
 
 Run with:
 
-    ./find
+    ./run
+
+Add a user's phone-number, name, and max-appointment-date:
+
+    add_recipient('+1..', '..', '2021-01-01T00:00')
 
 # License
 
